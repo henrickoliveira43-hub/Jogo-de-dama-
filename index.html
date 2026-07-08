@@ -370,7 +370,26 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Importações Oficiais estáveis do SDK Firebase via CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Sua configuração injetada
+        const firebaseConfig = {
+            apiKey: "AIzaSyAIrFUBgQKiePO6WrZ_OMj_OhbSWrI7asw",
+            authDomain: "cyber-damas.firebaseapp.com",
+            projectId: "cyber-damas",
+            storageBucket: "cyber-damas.firebasestorage.app",
+            messagingSenderId: "284837630425",
+            appId: "1:284837630425:web:0b77fe2eddeac9fbf389c8"
+        };
+
+        // Inicialização do ecossistema Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Referências do DOM
         const boardElement = document.getElementById('board');
         const countRedElement = document.getElementById('count-red');
         const countBlackElement = document.getElementById('count-black');
@@ -395,6 +414,7 @@
         let isMultiJumpMode = false;
         let gameActive = true; 
 
+        // Listeners de controle de Modos
         vsPlayerBtn.addEventListener('click', () => { setGameMode(false); });
         vsAiBtn.addEventListener('click', () => { setGameMode(true); });
         restartBtn.addEventListener('click', () => { 
@@ -674,11 +694,28 @@
             else if (blackCount === 0) endGame('red');
         }
 
+        // SALVAR NO CLOUD FIRESTORE
+        async function registrarPartidaNoFirebase(vencedor) {
+            try {
+                const docRef = await addDoc(collection(db, "historico_partidas"), {
+                    ganhador: vencedor,
+                    modo: isVsAI ? "Contra IA" : "PvP",
+                    timestamp: new Date().toISOString()
+                });
+                console.log("Histórico sincronizado no Firebase! ID:", docRef.id);
+            } catch (error) {
+                console.error("Erro ao sincronizar com o banco Firebase:", error);
+            }
+        }
+
         function endGame(winner) {
             gameActive = false;
             validMoves = [];
             selectedPiece = null;
             renderBoard();
+
+            // Salva o resultado no banco em tempo real do Firebase
+            registrarPartidaNoFirebase(winner);
 
             victoryCard.className = "victory-card " + (winner === 'red' ? 'winner-red' : 'winner-black');
             
@@ -746,6 +783,7 @@
             }
         });
 
+        // Start automático
         initGame();
     </script>
 </body>
