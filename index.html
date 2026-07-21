@@ -252,8 +252,6 @@
             transition: background 0.2s;
         }
 
-        /* Removido o :hover para mobile (não faz sentido no toque), mantido apenas o fundo padrão */
-
         /* Modal de Vitória */
         .victory-screen {
             position: fixed;
@@ -365,13 +363,14 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // Nova configuração do Firebase aplicada
         const firebaseConfig = {
-            apiKey: "AIzaSyAIrFUBgQKiePO6WrZ_OMj_OhbSWrI7asw",
-            authDomain: "cyber-damas.firebaseapp.com",
-            projectId: "cyber-damas",
-            storageBucket: "cyber-damas.firebasestorage.app",
-            messagingSenderId: "284837630425",
-            appId: "1:284837630425:web:0b77fe2eddeac9fbf389c8"
+            apiKey: "AIzaSyA6hQbsB-S8fJXwGXI2AZHGx2Ze1LM2bzY",
+            authDomain: "gen-lang-client-0148180315.firebaseapp.com",
+            projectId: "gen-lang-client-0148180315",
+            storageBucket: "gen-lang-client-0148180315.firebasestorage.app",
+            messagingSenderId: "128524317639",
+            appId: "1:128524317639:web:fc4284e3f6609f91a15fe2"
         };
 
         const app = initializeApp(firebaseConfig);
