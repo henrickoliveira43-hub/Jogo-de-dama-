@@ -155,7 +155,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, increment, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA6hQbsB-S8fJXwGXI2AZHGx2Ze1LM2bzY",
@@ -423,6 +423,7 @@
             let allMoves = jumpMoves.length > 0 ? jumpMoves : normalMoves;
             
             if (allMoves.length === 0) {
+                // Se a IA não tem peças ou não pode se mover (bloqueada), ela perde.
                 endGame('red');
                 return;
             }
@@ -473,9 +474,16 @@
             }
         }
 
+        // A IA agora salva saltos múltiplos em seu histórico de aprendizado
         function makeAiSubsequentMove() {
             if(validMoves.length > 0) {
                 let move = validMoves[0];
+                
+                // Registra o estado antes do salto subsequente para aprendizado
+                const currentState = getBoardStateHash();
+                const chosenMoveKey = `M${selectedPiece.row}${selectedPiece.col}${move.toRow}${move.toCol}`;
+                currentMatchHistory.push({ state: currentState, move: chosenMoveKey });
+
                 validMoves = [move];
                 handleMove(move.toRow, move.toCol);
             }
@@ -483,46 +491,61 @@
 
         function checkGameOver() {
             let redCount = 0, blackCount = 0;
+            let redCanMove = false, blackCanMove = false;
+
+            // Conta peças e verifica se algum lado não tem peças
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     if (boardState[row][col]?.type === 'red') redCount++;
                     if (boardState[row][col]?.type === 'black') blackCount++;
                 }
             }
-            if (redCount === 0) endGame('black');
-            else if (blackCount === 0) endGame('red');
+            
+            if (redCount === 0) {
+                endGame('black');
+                return;
+            } else if (blackCount === 0) {
+                endGame('red');
+                return;
+            }
         }
 
+        // Otimizado para usar WriteBatch (Muito mais rápido e seguro)
         async function trainGlobalBrain(winner) {
             console.log("Treinando a IA Global no Firebase...");
             const reward = (winner === 'black') ? 10 : -10;
             
-            for (const step of currentMatchHistory) {
-                try {
+            try {
+                const batch = writeBatch(db);
+                
+                for (const step of currentMatchHistory) {
                     const stateRef = doc(db, "cerebro_ia", step.state);
-                    await setDoc(stateRef, {
+                    batch.set(stateRef, {
                         [step.move]: increment(reward)
                     }, { merge: true });
-                } catch (e) {
-                    console.error("Falha ao atualizar o Cérebro Global:", e);
                 }
+                
+                await batch.commit();
+                console.log("Treinamento em Lote concluído com sucesso!");
+            } catch (e) {
+                console.error("Falha ao atualizar o Cérebro Global:", e);
             }
-            console.log("Treinamento concluído com sucesso!");
         }
 
         async function endGame(winner) {
+            if (!gameActive) return; // Evita chamada dupla
             gameActive = false;
             validMoves = [];
             selectedPiece = null;
             renderBoard();
 
             try {
-                // CORREÇÃO APLICADA AQUI: ganhador: winner (antes estava vencedor)
                 await addDoc(collection(db, "historico_partidas"), {
                     ganhador: winner, 
                     modo: isVsAI ? "Contra IA" : "PvP",
                     timestamp: new Date().toISOString()
                 });
+                console.log("Histórico de partida salvo com sucesso.");
             } catch(e) {
                 console.warn("Erro ao salvar histórico (verifique as regras do Firebase)", e);
             }
