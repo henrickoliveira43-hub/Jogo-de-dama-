@@ -155,7 +155,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, increment, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, increment, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA6hQbsB-S8fJXwGXI2AZHGx2Ze1LM2bzY",
@@ -226,6 +226,7 @@
             }
             renderBoard(true);
             updateScoreboard(false);
+            checkGameOver();
         }
 
         function renderBoard(isInitial = false) {
@@ -271,24 +272,37 @@
             }
         }
 
+        // Verifica se o jogador atual possui alguma captura obrigatória no tabuleiro
+        function playerHasJumps(playerColor) {
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (boardState[r][c]?.type === playerColor) {
+                        const jumps = getMovesForPiece(r, c, true);
+                        if (jumps.length > 0) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         function handlePieceClick(row, col) {
             if (isMultiJumpMode && (selectedPiece.row !== row || selectedPiece.col !== col)) return;
             const piece = boardState[row][col];
             if (!piece || piece.type !== turn) return;
 
             selectedPiece = { row, col };
-            calculateValidMoves(row, col);
+            const mustJump = isMultiJumpMode || playerHasJumps(turn);
+            validMoves = getMovesForPiece(row, col, mustJump);
             renderBoard();
         }
 
-        function calculateValidMoves(row, col, restrictToJumps = false) {
-            validMoves = [];
+        function getMovesForPiece(row, col, restrictToJumps = false) {
             const piece = boardState[row][col];
-            if (!piece) return;
-
-            const directions = [{ r: -1, c: -1 }, { r: -1, c: 1 }, { r: 1, c: -1 }, { r: 1, c: 1 }];
+            if (!piece) return [];
+            const moves = [];
 
             if (piece.king) {
+                const directions = [{ r: -1, c: -1 }, { r: -1, c: 1 }, { r: 1, c: -1 }, { r: 1, c: 1 }];
                 directions.forEach(dir => {
                     let nextR = row + dir.r;
                     let nextC = col + dir.c;
@@ -298,39 +312,55 @@
                         const currentTile = boardState[nextR][nextC];
                         if (!encounteredEnemy) {
                             if (!currentTile) {
-                                if (!restrictToJumps && !isMultiJumpMode) validMoves.push({ toRow: nextR, toCol: nextC, jump: null });
+                                if (!restrictToJumps && !isMultiJumpMode) {
+                                    moves.push({ toRow: nextR, toCol: nextC, jump: null });
+                                }
                             } else if (currentTile.type !== piece.type) {
                                 encounteredEnemy = { r: nextR, c: nextC };
                             } else break;
                         } else {
-                            if (!currentTile) validMoves.push({ toRow: nextR, toCol: nextC, jump: { r: encounteredEnemy.r, c: encounteredEnemy.c } });
-                            else break;
+                            if (!currentTile) {
+                                moves.push({ toRow: nextR, toCol: nextC, jump: { r: encounteredEnemy.r, c: encounteredEnemy.c } });
+                            } else break;
                         }
                         nextR += dir.r;
                         nextC += dir.c;
                     }
                 });
             } else {
-                const allowedDirections = [];
-                if (piece.type === 'red') allowedDirections.push({ r: -1, c: -1 }, { r: -1, c: 1 });
-                if (piece.type === 'black') allowedDirections.push({ r: 1, c: -1 }, { r: 1, c: 1 });
+                // Peças normais andam para frente, mas CAPTURAM em todas as 4 direções
+                const walkDirections = piece.type === 'red' ? [{ r: -1, c: -1 }, { r: -1, c: 1 }] : [{ r: 1, c: -1 }, { r: 1, c: 1 }];
+                const jumpDirections = [{ r: -1, c: -1 }, { r: -1, c: 1 }, { r: 1, c: -1 }, { r: 1, c: 1 }];
 
-                allowedDirections.forEach(dir => {
+                if (!restrictToJumps && !isMultiJumpMode) {
+                    walkDirections.forEach(dir => {
+                        let nextR = row + dir.r;
+                        let nextC = col + dir.c;
+                        if (nextR >= 0 && nextR < 8 && nextC >= 0 && nextC < 8) {
+                            if (!boardState[nextR][nextC]) {
+                                moves.push({ toRow: nextR, toCol: nextC, jump: null });
+                            }
+                        }
+                    });
+                }
+
+                jumpDirections.forEach(dir => {
                     let nextR = row + dir.r;
                     let nextC = col + dir.c;
                     if (nextR >= 0 && nextR < 8 && nextC >= 0 && nextC < 8) {
-                        if (!boardState[nextR][nextC] && !restrictToJumps && !isMultiJumpMode) {
-                            validMoves.push({ toRow: nextR, toCol: nextC, jump: null });
-                        } else if (boardState[nextR][nextC] && boardState[nextR][nextC].type !== piece.type) {
+                        if (boardState[nextR][nextC] && boardState[nextR][nextC].type !== piece.type) {
                             let jumpR = nextR + dir.r;
                             let jumpC = nextC + dir.c;
                             if (jumpR >= 0 && jumpR < 8 && jumpC >= 0 && jumpC < 8) {
-                                if (!boardState[jumpR][jumpC]) validMoves.push({ toRow: jumpR, toCol: jumpC, jump: { r: nextR, c: nextC } });
+                                if (!boardState[jumpR][jumpC]) {
+                                    moves.push({ toRow: jumpR, toCol: jumpC, jump: { r: nextR, c: nextC } });
+                                }
                             }
                         }
                     }
                 });
             }
+            return moves;
         }
 
         function handleMove(toRow, toCol) {
@@ -338,7 +368,7 @@
             if (!move || !selectedPiece) return;
 
             const piece = boardState[selectedPiece.row][selectedPiece.col];
-            
+
             if (move.jump) {
                 const targetCell = boardElement.querySelector(`[data-row="${move.jump.r}"][data-col="${move.jump.c}"]`);
                 const targetPiece = targetCell ? targetCell.querySelector('.piece') : null;
@@ -359,7 +389,13 @@
             if (move.jump) {
                 boardState[move.jump.r][move.jump.c] = null;
                 selectedPiece = { row: toRow, col: toCol };
-                calculateValidMoves(toRow, toCol, true); 
+                
+                // Promoção no final da linha
+                if ((piece.type === 'red' && toRow === 0) || (piece.type === 'black' && toRow === 7)) {
+                    piece.king = true;
+                }
+
+                validMoves = getMovesForPiece(toRow, toCol, true);
 
                 if (validMoves.length > 0) {
                     isMultiJumpMode = true;
@@ -368,9 +404,9 @@
                     if (isVsAI && turn === 'black') setTimeout(() => { makeAiSubsequentMove(); }, 600);
                     return; 
                 }
+            } else if ((piece.type === 'red' && toRow === 0) || (piece.type === 'black' && toRow === 7)) {
+                piece.king = true;
             }
-
-            if ((piece.type === 'red' && toRow === 0) || (piece.type === 'black' && toRow === 7)) piece.king = true;
 
             isMultiJumpMode = false;
             selectedPiece = null;
@@ -379,9 +415,12 @@
             
             renderBoard();
             updateScoreboard(true);
-            checkGameOver(); 
+            
+            if (checkGameOver()) return;
 
-            if (gameActive && isVsAI && turn === 'black') playAiTurn(); 
+            if (gameActive && isVsAI && turn === 'black') {
+                setTimeout(() => { playAiTurn(); }, 300);
+            }
         }
 
         function getBoardStateHash() {
@@ -399,31 +438,31 @@
             return hash;
         }
 
+        function getAllPossibleMoves(playerColor) {
+            const mustJump = playerHasJumps(playerColor);
+            let allMoves = [];
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (boardState[r][c]?.type === playerColor) {
+                        const moves = getMovesForPiece(r, c, mustJump);
+                        moves.forEach(m => {
+                            allMoves.push({ fromRow: r, fromCol: c, toRow: m.toRow, toCol: m.toCol, jump: m.jump });
+                        });
+                    }
+                }
+            }
+            return allMoves;
+        }
+
         async function playAiTurn() {
             if (turn !== 'black' || !gameActive) return;
 
             nameBlack.textContent = "IA Pensando...";
 
-            let jumpMoves = [];
-            let normalMoves = [];
-
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    if (boardState[r][c]?.type === 'black') {
-                        calculateValidMoves(r, c, isMultiJumpMode);
-                        validMoves.forEach(m => {
-                            const fullMove = { fromRow: r, fromCol: c, toRow: m.toRow, toCol: m.toCol, jump: m.jump };
-                            if (m.jump) jumpMoves.push(fullMove);
-                            else normalMoves.push(fullMove);
-                        });
-                    }
-                }
-            }
-
-            let allMoves = jumpMoves.length > 0 ? jumpMoves : normalMoves;
+            const allMoves = getAllPossibleMoves('black');
             
             if (allMoves.length === 0) {
-                // Se a IA não tem peças ou não pode se mover (bloqueada), ela perde.
                 endGame('red');
                 return;
             }
@@ -438,7 +477,7 @@
                     globalWeights = stateSnap.data();
                 }
             } catch (e) {
-                console.warn("Sem conexão com o cérebro global, jogando offline.", e);
+                console.warn("Conexão offline com o cérebro global.", e);
             }
 
             let selectedMove = null;
@@ -474,12 +513,9 @@
             }
         }
 
-        // A IA agora salva saltos múltiplos em seu histórico de aprendizado
         function makeAiSubsequentMove() {
             if(validMoves.length > 0) {
                 let move = validMoves[0];
-                
-                // Registra o estado antes do salto subsequente para aprendizado
                 const currentState = getBoardStateHash();
                 const chosenMoveKey = `M${selectedPiece.row}${selectedPiece.col}${move.toRow}${move.toCol}`;
                 currentMatchHistory.push({ state: currentState, move: chosenMoveKey });
@@ -491,9 +527,7 @@
 
         function checkGameOver() {
             let redCount = 0, blackCount = 0;
-            let redCanMove = false, blackCanMove = false;
 
-            // Conta peças e verifica se algum lado não tem peças
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     if (boardState[row][col]?.type === 'red') redCount++;
@@ -503,26 +537,44 @@
             
             if (redCount === 0) {
                 endGame('black');
-                return;
+                return true;
             } else if (blackCount === 0) {
                 endGame('red');
-                return;
+                return true;
             }
+
+            // Verifica se o jogador atual não tem movimentos válidos (Bloqueado)
+            const availableMoves = getAllPossibleMoves(turn);
+            if (availableMoves.length === 0) {
+                const winner = turn === 'red' ? 'black' : 'red';
+                endGame(winner);
+                return true;
+            }
+
+            return false;
         }
 
-        // Otimizado para usar WriteBatch (Muito mais rápido e seguro)
+        // Treinamento otimizado agrupando atualizações por estado para evitar duplicatas em lote
         async function trainGlobalBrain(winner) {
             console.log("Treinando a IA Global no Firebase...");
             const reward = (winner === 'black') ? 10 : -10;
             
             try {
-                const batch = writeBatch(db);
-                
+                const aggregated = {};
                 for (const step of currentMatchHistory) {
-                    const stateRef = doc(db, "cerebro_ia", step.state);
-                    batch.set(stateRef, {
-                        [step.move]: increment(reward)
-                    }, { merge: true });
+                    if (!aggregated[step.state]) aggregated[step.state] = {};
+                    if (!aggregated[step.state][step.move]) aggregated[step.state][step.move] = 0;
+                    aggregated[step.state][step.move] += reward;
+                }
+
+                const batch = writeBatch(db);
+                for (const [state, moves] of Object.entries(aggregated)) {
+                    const stateRef = doc(db, "cerebro_ia", state);
+                    const updateData = {};
+                    for (const [moveKey, val] of Object.entries(moves)) {
+                        updateData[moveKey] = increment(val);
+                    }
+                    batch.set(stateRef, updateData, { merge: true });
                 }
                 
                 await batch.commit();
@@ -533,7 +585,7 @@
         }
 
         async function endGame(winner) {
-            if (!gameActive) return; // Evita chamada dupla
+            if (!gameActive) return; 
             gameActive = false;
             validMoves = [];
             selectedPiece = null;
@@ -545,9 +597,8 @@
                     modo: isVsAI ? "Contra IA" : "PvP",
                     timestamp: new Date().toISOString()
                 });
-                console.log("Histórico de partida salvo com sucesso.");
             } catch(e) {
-                console.warn("Erro ao salvar histórico (verifique as regras do Firebase)", e);
+                console.warn("Erro ao salvar histórico de partidas", e);
             }
 
             if (isVsAI) {
