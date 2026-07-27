@@ -40,12 +40,14 @@
             justify-content: center;
             overflow-x: hidden;
             padding: max(2vh, 10px) 15px;
+            position: relative;
         }
 
         .game-container {
             display: flex; flex-direction: column; align-items: center;
             gap: clamp(8px, 2vh, 16px); width: 100%; max-width: 680px;
             animation: fadeIn 0.5s ease-out;
+            z-index: 10;
         }
 
         .game-header { text-align: center; width: 100%; }
@@ -77,6 +79,7 @@
             background: var(--bg-secondary); border-radius: 6px; overflow: hidden;
             display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
             border: 1px solid var(--border-muted); box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin: 0 auto;
+            position: relative;
         }
 
         .cell { display: flex; align-items: center; justify-content: center; position: relative; }
@@ -93,31 +96,51 @@
         .piece.selected { transform: scale(1.05); box-shadow: 0 0 0 clamp(2px, 1vw, 4px) var(--board-dark), 0 0 0 clamp(4px, 1.5vw, 6px) var(--selection-ring); }
         .piece.fade-out { animation: disintegrate 0.3s ease-in forwards; }
         .piece.king::after { content: '♔'; color: white; font-size: clamp(14px, 3.5vw, 24px); opacity: 0.9; animation: crownPop 0.4s ease both; }
+        .piece.victory-dance { animation: victoryPulse 1.2s infinite ease-in-out; }
 
         .cell.valid { cursor: pointer; }
         .cell.valid::after { content: ''; width: 25%; height: 25%; background: var(--valid-move); border-radius: 50%; position: absolute; z-index: 3; pointer-events: none; transition: background 0.2s; }
 
+        /* Canvas para chuva de pedras comemorativa */
+        #celebrationCanvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 90;
+        }
+
         .victory-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(13, 17, 23, 0.9); backdrop-filter: blur(5px); z-index: 100;
-            display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px;
+            background: rgba(13, 17, 23, 0.85); backdrop-filter: blur(8px); z-index: 100;
+            display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; padding: 20px;
         }
         .victory-screen.show { opacity: 1; pointer-events: auto; }
-        .victory-card { background: var(--bg-card); border: 1px solid var(--border-muted); padding: clamp(20px, 5vw, 30px); border-radius: 12px; text-align: center; max-width: 350px; width: 100%; transform: scale(0.95); transition: transform 0.3s ease; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); }
-        .victory-screen.show .victory-card { transform: scale(1); }
-        .victory-banner { font-size: clamp(1.5rem, 5vw, 2rem); margin-bottom: 12px; }
-        .victory-title { font-size: clamp(1.2rem, 4vw, 1.5rem); font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
-        .victory-text { color: var(--text-secondary); font-size: clamp(0.75rem, 2.5vw, 0.85rem); margin-bottom: 24px; }
-        .btn-primary { background: var(--accent-blue); color: #fff; border: none; padding: 10px 20px; border-radius: 4px; font-size: clamp(0.75rem, 2.5vw, 0.85rem); font-weight: 600; cursor: pointer; transition: background 0.2s ease; width: 100%; }
-        .btn-primary:active { background: var(--accent-blue-hover); }
+        .victory-card { 
+            background: var(--bg-card); border: 1px solid var(--border-muted); padding: clamp(20px, 5vw, 30px); 
+            border-radius: 12px; text-align: center; max-width: 380px; width: 100%; 
+            transform: scale(0.8) translateY(20px); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); 
+        }
+        .victory-screen.show .victory-card { transform: scale(1) translateY(0); }
+        .victory-banner { font-size: clamp(2rem, 6vw, 2.8rem); margin-bottom: 8px; animation: bounce 1s infinite alternate; }
+        .victory-title { font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
+        .victory-text { color: var(--text-secondary); font-size: clamp(0.75rem, 2.5vw, 0.85rem); margin-bottom: 24px; line-height: 1.4; }
+        .btn-primary { background: var(--accent-blue); color: #fff; border: none; padding: 12px 24px; border-radius: 6px; font-size: clamp(0.8rem, 2.5vw, 0.9rem); font-weight: 600; cursor: pointer; transition: all 0.2s ease; width: 100%; box-shadow: 0 4px 12px rgba(47, 129, 247, 0.3); }
+        .btn-primary:hover { background: var(--accent-blue-hover); transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(1px); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spawnPiece { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes crownPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 0.9; } }
         @keyframes disintegrate { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.5); opacity: 0; } }
+        @keyframes victoryPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px var(--accent-blue); }
+            50% { transform: scale(1.15); box-shadow: 0 0 22px var(--accent-blue); }
+        }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
     </style>
 </head>
 <body>
+
+    <canvas id="celebrationCanvas"></canvas>
 
     <div class="game-container">
         <header class="game-header">
@@ -182,6 +205,8 @@
         const winnerTitle = document.getElementById('winnerTitle');
         const winnerSubText = document.getElementById('winnerSubText');
         const restartBtn = document.getElementById('restartBtn');
+        const canvas = document.getElementById('celebrationCanvas');
+        const ctx = canvas.getContext('2d');
 
         let boardState = [];
         let turn = 'red'; 
@@ -191,10 +216,12 @@
         let isMultiJumpMode = false;
         let gameActive = true; 
         let currentMatchHistory = []; 
+        let celebrationAnimId = null;
 
         vsPlayerBtn.addEventListener('click', () => { setGameMode(false); });
         vsAiBtn.addEventListener('click', () => { setGameMode(true); });
         restartBtn.addEventListener('click', () => { 
+            stopCelebration();
             victoryScreen.classList.remove('show');
             initGame(); 
         });
@@ -208,6 +235,7 @@
         }
 
         function initGame() {
+            stopCelebration();
             boardState = Array(8).fill(null).map(() => Array(8).fill(null));
             turn = 'red';
             selectedPiece = null;
@@ -226,7 +254,6 @@
             }
             renderBoard(true);
             updateScoreboard(false);
-            checkGameOver();
         }
 
         function renderBoard(isInitial = false) {
@@ -272,7 +299,6 @@
             }
         }
 
-        // Verifica se o jogador atual possui alguma captura obrigatória no tabuleiro
         function playerHasJumps(playerColor) {
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
@@ -328,7 +354,6 @@
                     }
                 });
             } else {
-                // Peças normais andam para frente, mas CAPTURAM em todas as 4 direções
                 const walkDirections = piece.type === 'red' ? [{ r: -1, c: -1 }, { r: -1, c: 1 }] : [{ r: 1, c: -1 }, { r: 1, c: 1 }];
                 const jumpDirections = [{ r: -1, c: -1 }, { r: -1, c: 1 }, { r: 1, c: -1 }, { r: 1, c: 1 }];
 
@@ -390,7 +415,6 @@
                 boardState[move.jump.r][move.jump.c] = null;
                 selectedPiece = { row: toRow, col: toCol };
                 
-                // Promoção no final da linha
                 if ((piece.type === 'red' && toRow === 0) || (piece.type === 'black' && toRow === 7)) {
                     piece.king = true;
                 }
@@ -401,7 +425,7 @@
                     isMultiJumpMode = true;
                     renderBoard();
                     updateScoreboard(true);
-                    if (isVsAI && turn === 'black') setTimeout(() => { makeAiSubsequentMove(); }, 600);
+                    if (isVsAI && turn === 'black') setTimeout(() => { makeAiSubsequentMove(); }, 500);
                     return; 
                 }
             } else if ((piece.type === 'red' && toRow === 0) || (piece.type === 'black' && toRow === 7)) {
@@ -419,7 +443,7 @@
             if (checkGameOver()) return;
 
             if (gameActive && isVsAI && turn === 'black') {
-                setTimeout(() => { playAiTurn(); }, 300);
+                setTimeout(() => { playAiTurn(); }, 350);
             }
         }
 
@@ -482,7 +506,7 @@
 
             let selectedMove = null;
             let bestScore = -Infinity;
-            const explorationRate = 0.2; 
+            const explorationRate = 0.15; 
 
             if (Math.random() < explorationRate) {
                 selectedMove = allMoves[Math.floor(Math.random() * allMoves.length)];
@@ -543,7 +567,6 @@
                 return true;
             }
 
-            // Verifica se o jogador atual não tem movimentos válidos (Bloqueado)
             const availableMoves = getAllPossibleMoves(turn);
             if (availableMoves.length === 0) {
                 const winner = turn === 'red' ? 'black' : 'red';
@@ -554,9 +577,7 @@
             return false;
         }
 
-        // Treinamento otimizado agrupando atualizações por estado para evitar duplicatas em lote
         async function trainGlobalBrain(winner) {
-            console.log("Treinando a IA Global no Firebase...");
             const reward = (winner === 'black') ? 10 : -10;
             
             try {
@@ -578,27 +599,31 @@
                 }
                 
                 await batch.commit();
-                console.log("Treinamento em Lote concluído com sucesso!");
             } catch (e) {
                 console.error("Falha ao atualizar o Cérebro Global:", e);
             }
         }
 
-        async function endGame(winner) {
+        function endGame(winner) {
             if (!gameActive) return; 
             gameActive = false;
             validMoves = [];
             selectedPiece = null;
             renderBoard();
 
+            // Adiciona efeito de dança na peças restantes do vencedor no tabuleiro
+            document.querySelectorAll(`.piece.${winner}`).forEach(p => {
+                p.classList.add('victory-dance');
+            });
+
             try {
-                await addDoc(collection(db, "historico_partidas"), {
+                addDoc(collection(db, "historico_partidas"), {
                     ganhador: winner, 
                     modo: isVsAI ? "Contra IA" : "PvP",
                     timestamp: new Date().toISOString()
                 });
             } catch(e) {
-                console.warn("Erro ao salvar histórico de partidas", e);
+                console.warn("Erro ao salvar histórico", e);
             }
 
             if (isVsAI) {
@@ -610,11 +635,119 @@
                 winnerSubText.textContent = isVsAI ? "Você superou a mente coletiva da IA!" : "O jogador vermelho dominou o tabuleiro.";
             } else {
                 winnerTitle.textContent = "Vitória do Azul!";
-                winnerSubText.textContent = isVsAI ? "A Inteligência Artificial venceu." : "O jogador azul dominou o tabuleiro.";
+                winnerSubText.textContent = isVsAI ? "A Inteligência Artificial venceu a partida." : "O jogador azul dominou o tabuleiro.";
             }
 
-            setTimeout(() => { victoryScreen.classList.add('show'); }, 400);
+            startCelebration(winner);
+            setTimeout(() => { victoryScreen.classList.add('show'); }, 500);
         }
+
+        // ==========================================
+        //  SISTEMA DE ANIMAÇÃO COM AS PEDRAS DE DAMAS
+        // ==========================================
+        let particles = [];
+
+        function startCelebration(winnerColor) {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+
+            const primaryGradient = winnerColor === 'red' 
+                ? ['#f85149', '#da3633'] 
+                : ['#2f81f7', '#1f6feb'];
+
+            const totalPieces = 35; // Quantidade de pedras voadoras
+
+            for (let i = 0; i < totalPieces; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * -canvas.height - 50,
+                    radius: Math.random() * 12 + 18,
+                    vy: Math.random() * 3 + 2,
+                    vx: (Math.random() - 0.5) * 2,
+                    rotation: Math.random() * Math.PI * 2,
+                    vRot: (Math.random() - 0.5) * 0.08,
+                    isKing: Math.random() > 0.4,
+                    color1: primaryGradient[0],
+                    color2: primaryGradient[1],
+                    alpha: Math.random() * 0.4 + 0.6
+                });
+            }
+
+            animateCelebration();
+        }
+
+        function animateCelebration() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach((p) => {
+                p.y += p.vy;
+                p.x += Math.sin(p.y * 0.01) + p.vx;
+                p.rotation += p.vRot;
+
+                if (p.y - p.radius > canvas.height) {
+                    p.y = -p.radius * 2;
+                    p.x = Math.random() * canvas.width;
+                }
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation);
+                ctx.globalAlpha = p.alpha;
+
+                // Sombra da pedra
+                ctx.beginPath();
+                ctx.arc(3, 4, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.fill();
+
+                // Corpo da pedra (Gradiente radial 3D)
+                const grad = ctx.createRadialGradient(-p.radius*0.3, -p.radius*0.3, p.radius*0.1, 0, 0, p.radius);
+                grad.addColorStop(0, '#ffffff');
+                grad.addColorStop(0.3, p.color1);
+                grad.addColorStop(1, p.color2);
+
+                ctx.beginPath();
+                ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                // Borda interna brilhante
+                ctx.beginPath();
+                ctx.arc(0, 0, p.radius * 0.75, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Coroa para Damas
+                if (p.isKing) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `${p.radius * 1.1}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('♔', 0, 1);
+                }
+
+                ctx.restore();
+            });
+
+            celebrationAnimId = requestAnimationFrame(animateCelebration);
+        }
+
+        function stopCelebration() {
+            if (celebrationAnimId) {
+                cancelAnimationFrame(celebrationAnimId);
+                celebrationAnimId = null;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        window.addEventListener('resize', () => {
+            if (celebrationAnimId) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        });
 
         function updateScoreboard(bumpAnimation = false) {
             let redCount = 0, blackCount = 0;
