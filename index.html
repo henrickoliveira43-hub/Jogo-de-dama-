@@ -388,7 +388,7 @@
             <div class="brand">
                 <span class="brand-dot"></span> Cyber Damas (Regra BR)
             </div>
-            <span class="net-badge" id="netStatus">ON-LINE</span>
+            <span class="net-badge" id="netStatus">CONECTANDO...</span>
         </header>
 
         <div class="toolbar">
@@ -455,7 +455,7 @@
         </div>
     </div>
 
-    <!-- Módulo Firebase -->
+    <!-- Módulo Firebase com Diagnóstico -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -469,39 +469,51 @@
             appId: "1:128524317639:web:fc4284e3f6609f91a15fe2"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const globalStatsDoc = doc(db, "cyber_damas", "global_network");
-
         const netStatusEl = document.getElementById('netStatus');
         const globalGamesEl = document.getElementById('globalGames');
 
-        onSnapshot(globalStatsDoc, (docSnap) => {
-            if (docSnap.exists()) {
-                globalGamesEl.textContent = docSnap.data().totalMatches || 0;
-                netStatusEl.textContent = 'REDE CONECTADA';
-            } else {
-                setDoc(globalStatsDoc, { totalMatches: 1 }, { merge: true });
-            }
-        }, () => {
-            netStatusEl.textContent = 'OFFLINE';
-            globalGamesEl.textContent = 'N/A';
-        });
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const globalStatsDoc = doc(db, "cyber_damas", "global_network");
 
-        window.syncGameToFirebase = async function(winnerIsUser) {
-            try {
-                await updateDoc(globalStatsDoc, {
-                    totalMatches: increment(1),
-                    userWins: winnerIsUser ? increment(1) : increment(0)
-                });
-            } catch (e) {
+            onSnapshot(globalStatsDoc, (docSnap) => {
+                if (docSnap.exists()) {
+                    globalGamesEl.textContent = docSnap.data().totalMatches || 0;
+                    netStatusEl.textContent = 'REDE CONECTADA';
+                    console.log("✅ Firebase Firestore conectado com sucesso!");
+                } else {
+                    setDoc(globalStatsDoc, { totalMatches: 1 }, { merge: true });
+                    netStatusEl.textContent = 'REDE CONECTADA';
+                }
+            }, (err) => {
+                console.warn("⚠️ Firestore em modo de erro ou sem permissão:", err);
+                netStatusEl.textContent = 'OFFLINE/LOCAL';
+                globalGamesEl.textContent = 'OFFLINE';
+            });
+
+            window.syncGameToFirebase = async function(winnerIsUser) {
                 try {
-                    await setDoc(globalStatsDoc, { totalMatches: 1 }, { merge: true });
-                } catch(err) {}
-            }
-        };
+                    await updateDoc(globalStatsDoc, {
+                        totalMatches: increment(1),
+                        userWins: winnerIsUser ? increment(1) : increment(0)
+                    });
+                    console.log("☁️ Partida registrada no banco de dados com sucesso!");
+                } catch (e) {
+                    try {
+                        await setDoc(globalStatsDoc, { totalMatches: 1 }, { merge: true });
+                    } catch(err) {
+                        console.error("❌ Erro ao atualizar no banco de dados:", err);
+                    }
+                }
+            };
+        } catch (err) {
+            console.error("❌ Erro ao inicializar o Firebase:", err);
+            netStatusEl.textContent = 'RODE VIA LIVE SERVER';
+        }
     </script>
 
+    <!-- Lógica de Jogo, IA, Dama Voadora, Sons e Animações -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Áudio Sintetizado Nativo
@@ -554,7 +566,7 @@
             }
             const sound = new SoundSystem();
 
-            // --- SISTEMA DE CELEBRAÇÃO E CONFETIS PERSONALIZADO ---
+            // --- SISTEMA DE CELEBRAÇÃO E CONFETES PERSONALIZADO ---
             const canvas = document.getElementById('celebrationCanvas');
             const ctx = canvas.getContext('2d');
             let confettiParticles = [];
@@ -564,7 +576,6 @@
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
 
-            // Dispara rajada de confetes adaptada para a cor do vencedor!
             function spawnConfetti(winnerColor = 'red') {
                 confettiParticles = [];
                 const colors = winnerColor === 'red'
@@ -595,7 +606,7 @@
                 confettiParticles.forEach(p => {
                     p.x += p.vx;
                     p.y += p.vy;
-                    p.vy += 0.22; // gravidade
+                    p.vy += 0.22;
                     p.rotation += p.vRot;
                     p.life -= 0.012;
 
@@ -1076,18 +1087,13 @@
 
                 if (window.syncGameToFirebase) window.syncGameToFirebase(winnerIsUser);
 
-                // 1. Toca o som de celebração festivo
                 sound.win();
-
-                // 2. Dispara a animação de partículas/confete temático do vencedor
                 spawnConfetti(winner);
 
-                // 3. Ativa a dança da vitória nas peças sobreviventes do campeão no tabuleiro
                 document.querySelectorAll(`.piece.${winner}`).forEach(p => {
                     p.classList.add('victory-dance');
                 });
 
-                // 4. Configura o modal visual com tema da cor do vencedor
                 modalCard.classList.remove('red-theme', 'black-theme');
 
                 if (winner === RED) {
@@ -1106,7 +1112,6 @@
 
                 saveStats();
 
-                // 5. Exibe o modal com overlay animado
                 setTimeout(() => {
                     victoryScreen.classList.add('show');
                 }, 400);
