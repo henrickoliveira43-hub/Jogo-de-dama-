@@ -3,182 +3,462 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Damas - IA Global</title>
+    <title>Cyber Damas — Regra Brasileira Pro</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         :root {
-            --bg-primary: #0d1117;
-            --bg-secondary: #161b22;
-            --bg-card: #21262d;
-            --border-muted: #30363d;
-            --text-primary: #e6edf3;
-            --text-secondary: #8b949e;
-            --accent-blue: #2f81f7;
-            --accent-red: #f85149;
-            --accent-blue-hover: #1f6feb;
-            --board-light: #2d333b;
-            --board-dark: #1e232b;
-            --piece-red: #f85149;
-            --piece-red-dark: #da3633;
-            --piece-black: #2f81f7; 
-            --piece-black-dark: #1f6feb;
-            --valid-move: rgba(47, 129, 247, 0.5);
-            --selection-ring: rgba(230, 237, 243, 0.8);
+            --bg-base: #080a0f;
+            --bg-surface: #10141d;
+            --bg-surface-elevated: #171d2a;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(255, 255, 255, 0.18);
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            --ruby: #f43f5e;
+            --ruby-glow: rgba(244, 63, 94, 0.35);
+            --cyan: #06b6d4;
+            --cyan-glow: rgba(6, 182, 212, 0.35);
+            --amber: #f59e0b;
+
+            --board-light: #161e2e;
+            --board-dark: #0b1019;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.08), transparent),
+                radial-gradient(circle at 100% 100%, rgba(244, 63, 94, 0.05), transparent 50%);
             color: var(--text-primary);
-            min-height: 100dvh; 
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 16px;
             overflow-x: hidden;
-            padding: max(2vh, 10px) 15px;
-            position: relative;
         }
 
-        .game-container {
-            display: flex; flex-direction: column; align-items: center;
-            gap: clamp(8px, 2vh, 16px); width: 100%; max-width: 680px;
-            animation: fadeIn 0.5s ease-out;
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            max-width: 480px;
             z-index: 10;
         }
 
-        .game-header { text-align: center; width: 100%; }
-        .game-title { font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 700; margin-bottom: 2px; }
-        .game-subtitle { font-size: clamp(0.6rem, 2vw, 0.75rem); color: var(--text-secondary); font-weight: 500; text-transform: uppercase; margin-bottom: clamp(8px, 1.5vh, 12px); }
-
-        .controls-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-        .btn-modern {
-            background: var(--bg-card); border: 1px solid var(--border-muted); color: var(--text-secondary);
-            padding: 6px 14px; border-radius: 4px; cursor: pointer; font-family: inherit;
-            font-size: clamp(0.7rem, 2.5vw, 0.8rem); font-weight: 500; transition: all 0.2s ease;
+        /* HEADER PROFISSIONAL */
+        .app-header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 2px;
         }
-        .btn-modern:hover { color: var(--text-primary); background: #2a3038; border-color: #8b949e; }
-        .btn-modern.active { background: var(--bg-primary); border-color: var(--accent-blue); color: var(--accent-blue); }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        .brand-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+        .net-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            color: var(--cyan);
+        }
 
-        .scoreboard { display: flex; align-items: center; justify-content: center; gap: clamp(8px, 2vw, 16px); width: 100%; max-width: 500px; }
-        .player-card { flex: 1; background: var(--bg-card); border: 1px solid var(--border-muted); border-radius: 6px; padding: clamp(6px, 1.5vw, 10px); text-align: center; transition: all 0.3s ease; opacity: 0.5; }
-        .player-card.active { opacity: 1; border-color: var(--text-secondary); background: var(--bg-secondary); }
-        .player-card.red.active { border-bottom: 3px solid var(--accent-red); }
-        .player-card.black.active { border-bottom: 3px solid var(--accent-blue); }
-        .player-name { font-size: clamp(0.55rem, 2vw, 0.7rem); font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px; white-space: nowrap; }
-        .player-card.active .player-name { color: var(--text-primary); }
-        .pieces-count { font-size: clamp(1.1rem, 4vw, 1.4rem); font-weight: 700; color: var(--text-primary); transition: transform 0.2s; }
-        .pieces-count.bump { transform: scale(1.2); }
-        .vs-badge { font-weight: 600; color: var(--border-muted); font-size: clamp(0.7rem, 2vw, 0.85rem); }
+        /* CONTROLES / SEGMENTOS */
+        .toolbar {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .segmented-control {
+            display: flex;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            padding: 3px;
+            border-radius: 10px;
+            width: 100%;
+        }
+        .segment-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        .segment-btn:hover { color: var(--text-primary); }
+        .segment-btn.active {
+            background: var(--bg-surface-elevated);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-active);
+        }
 
-        .board {
-            width: 100%; max-width: min(100%, 65vh); aspect-ratio: 1 / 1;
-            background: var(--bg-secondary); border-radius: 6px; overflow: hidden;
-            display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
-            border: 1px solid var(--border-muted); box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin: 0 auto;
+        .actions-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            width: 100%;
+        }
+        .btn-action {
+            flex: 1;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .btn-action:hover { border-color: var(--border-active); color: var(--text-primary); }
+        .btn-action.active {
+            border-color: var(--amber);
+            color: var(--amber);
+            background: rgba(245, 158, 11, 0.08);
+        }
+        .badge-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            background: rgba(255,255,255,0.1);
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+
+        /* PLACAR SLATE PRO */
+        .scoreboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+        .player-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0.45;
             position: relative;
         }
+        .player-card.active {
+            opacity: 1;
+            background: var(--bg-surface-elevated);
+            border-color: var(--border-active);
+        }
+        .player-card.red.active { box-shadow: 0 0 20px -5px var(--ruby-glow); }
+        .player-card.black.active { box-shadow: 0 0 20px -5px var(--cyan-glow); }
 
-        .cell { display: flex; align-items: center; justify-content: center; position: relative; }
+        .player-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .player-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+        .player-card.active .player-name { color: var(--text-primary); }
+        .status-tag {
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .player-card.red .status-tag { background: rgba(244, 63, 94, 0.15); color: var(--ruby); }
+        .player-card.black .status-tag { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
+
+        .score-val {
+            font-size: 1.4rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .clock-display {
+            font-size: 0.75rem;
+            color: var(--amber);
+            font-weight: 600;
+        }
+
+        /* ESTATÍSTICAS INTEGRADAS */
+        .stats-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 6px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+        }
+        .stats-bar b { color: var(--text-primary); font-weight: 700; }
+
+        /* TABULEIRO PREMIUM */
+        .board-container {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            position: relative;
+            padding: 6px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+        .board {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+        }
+
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
         .cell.light { background-color: var(--board-light); }
         .cell.dark { background-color: var(--board-dark); }
 
+        /* PEÇAS COM ACABAMENTO METÁLICO/VIDRO */
         .piece {
-            width: 75%; height: 75%; border-radius: 50%; cursor: pointer; position: relative; z-index: 2;
-            transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; align-items: center; justify-content: center;
-            animation: spawnPiece 0.3s both; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            width: 76%;
+            height: 76%;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
         }
-        .piece.red { background: linear-gradient(135deg, var(--piece-red), var(--piece-red-dark)); }
-        .piece.black { background: linear-gradient(135deg, var(--piece-black), var(--piece-black-dark)); }
-        .piece.selected { transform: scale(1.05); box-shadow: 0 0 0 clamp(2px, 1vw, 4px) var(--board-dark), 0 0 0 clamp(4px, 1.5vw, 6px) var(--selection-ring); }
-        .piece.fade-out { animation: disintegrate 0.3s ease-in forwards; }
-        .piece.king::after { content: '♔'; color: white; font-size: clamp(14px, 3.5vw, 24px); opacity: 0.9; animation: crownPop 0.4s ease both; }
-        .piece.victory-dance { animation: victoryPulse 1.2s infinite ease-in-out; }
-
-        .cell.valid { cursor: pointer; }
-        .cell.valid::after { content: ''; width: 25%; height: 25%; background: var(--valid-move); border-radius: 50%; position: absolute; z-index: 3; pointer-events: none; transition: background 0.2s; }
-
-        /* Canvas para chuva de pedras comemorativa */
-        #celebrationCanvas {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 90;
+        .piece.red {
+            background: radial-gradient(circle at 35% 35%, #ff6b81, #f43f5e 60%, #be123c);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 2px 3px rgba(255, 255, 255, 0.3);
+        }
+        .piece.black {
+            background: radial-gradient(circle at 35% 35%, #22d3ee, #06b6d4 60%, #0e7490);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 2px 3px rgba(255, 255, 255, 0.4);
+        }
+        .piece.selected {
+            transform: scale(1.12);
+            box-shadow: 0 0 0 3px var(--bg-base), 0 0 0 5px var(--text-primary);
+        }
+        .piece.king::after {
+            content: '♔';
+            color: #080a0f;
+            font-size: clamp(14px, 3.6vw, 22px);
+            font-weight: 800;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.4);
         }
 
-        .victory-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(13, 17, 23, 0.85); backdrop-filter: blur(8px); z-index: 100;
-            display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; padding: 20px;
+        /* ANIMAÇÃO DA DANÇA DA VITÓRIA */
+        .piece.victory-dance {
+            animation: victoryPulse 1s infinite alternate ease-in-out;
         }
-        .victory-screen.show { opacity: 1; pointer-events: auto; }
-        .victory-card { 
-            background: var(--bg-card); border: 1px solid var(--border-muted); padding: clamp(20px, 5vw, 30px); 
-            border-radius: 12px; text-align: center; max-width: 380px; width: 100%; 
-            transform: scale(0.8) translateY(20px); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); 
-        }
-        .victory-screen.show .victory-card { transform: scale(1) translateY(0); }
-        .victory-banner { font-size: clamp(2rem, 6vw, 2.8rem); margin-bottom: 8px; animation: bounce 1s infinite alternate; }
-        .victory-title { font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
-        .victory-text { color: var(--text-secondary); font-size: clamp(0.75rem, 2.5vw, 0.85rem); margin-bottom: 24px; line-height: 1.4; }
-        .btn-primary { background: var(--accent-blue); color: #fff; border: none; padding: 12px 24px; border-radius: 6px; font-size: clamp(0.8rem, 2.5vw, 0.9rem); font-weight: 600; cursor: pointer; transition: all 0.2s ease; width: 100%; box-shadow: 0 4px 12px rgba(47, 129, 247, 0.3); }
-        .btn-primary:hover { background: var(--accent-blue-hover); transform: translateY(-1px); }
-        .btn-primary:active { transform: translateY(1px); }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes spawnPiece { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes crownPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 0.9; } }
-        @keyframes disintegrate { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.5); opacity: 0; } }
         @keyframes victoryPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 10px var(--accent-blue); }
-            50% { transform: scale(1.15); box-shadow: 0 0 22px var(--accent-blue); }
+            0% { transform: scale(0.95); }
+            100% { transform: scale(1.18); box-shadow: 0 0 18px currentColor; }
         }
+
+        .cell.valid::after {
+            content: '';
+            width: 22%;
+            height: 22%;
+            background: var(--amber);
+            border-radius: 50%;
+            position: absolute;
+            z-index: 3;
+            pointer-events: none;
+            box-shadow: 0 0 8px var(--amber);
+        }
+        .cell.hint-glow::before {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border: 2px dashed var(--amber);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        /* MODAIS E TOASTS DE CELEBRAÇÃO */
+        #celebrationCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 90; }
+
+        .combo-toast {
+            position: fixed; top: 12%; left: 50%; transform: translate(-50%, -10px); z-index: 95;
+            font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1rem;
+            color: var(--amber); background: var(--bg-surface-elevated); border: 1px solid var(--border-active);
+            padding: 8px 18px; border-radius: 99px; opacity: 0; pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .combo-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(8, 10, 15, 0.88); backdrop-filter: blur(12px);
+            z-index: 100; display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease; padding: 20px;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            background: var(--bg-surface); border: 1px solid var(--border-active);
+            padding: 32px 28px; border-radius: 20px; text-align: center; max-width: 350px; width: 100%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            transform: scale(0.85); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-card.red-theme { border-color: var(--ruby); box-shadow: 0 0 35px var(--ruby-glow); }
+        .modal-card.black-theme { border-color: var(--cyan); box-shadow: 0 0 35px var(--cyan-glow); }
+
+        .modal-icon { font-size: 2.8rem; margin-bottom: 8px; animation: bounce 1s infinite alternate; }
+        .modal-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; }
+        .modal-desc { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 22px; line-height: 1.45; }
+        .btn-primary {
+            background: var(--cyan); color: #080a0f; border: none; padding: 12px 20px;
+            border-radius: 10px; font-size: 0.88rem; font-weight: 800; cursor: pointer;
+            width: 100%; transition: filter 0.2s ease, transform 0.1s;
+        }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-primary:active { transform: scale(0.98); }
+
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
     </style>
 </head>
 <body>
 
     <canvas id="celebrationCanvas"></canvas>
+    <div class="combo-toast" id="comboToast"></div>
 
-    <div class="game-container">
-        <header class="game-header">
-            <h1 class="game-title">Cyber Damas</h1>
-            <p class="game-subtitle">IA com Cérebro Global</p>
-            <div class="controls-row">
-                <button class="btn-modern active" id="vsPlayerBtn">Modo PvP</button>
-                <button class="btn-modern" id="vsAiBtn">Contra IA</button>
+    <div class="game-wrapper">
+        <header class="app-header">
+            <div class="brand">
+                <span class="brand-dot"></span> Cyber Damas (Regra BR)
             </div>
+            <span class="net-badge" id="netStatus">ON-LINE</span>
         </header>
 
-        <div class="scoreboard">
-            <div class="player-card red active" id="card-red">
-                <div class="player-name">Você (Vermelho)</div>
-                <div class="pieces-count" id="count-red">12</div>
+        <div class="toolbar">
+            <div class="segmented-control">
+                <button class="segment-btn active" id="vsPlayerBtn">Jogador vs Jogador</button>
+                <button class="segment-btn" id="vsAiBtn">Contra IA</button>
             </div>
-            <div class="vs-badge">VS</div>
-            <div class="player-card black" id="card-black">
-                <div class="player-name" id="name-black">Jogador (Azul)</div>
-                <div class="pieces-count" id="count-black">12</div>
+
+            <div class="segmented-control" id="difficultyRow" style="display:none;">
+                <button class="segment-btn" data-diff="easy">Fácil</button>
+                <button class="segment-btn active" data-diff="medium">Médio</button>
+                <button class="segment-btn" data-diff="hard">Difícil</button>
+            </div>
+
+            <div class="actions-row">
+                <button class="btn-action" id="soundBtn">🔊 Som</button>
+                <button class="btn-action" id="blitzBtn">⏱ Blitz</button>
+                <button class="btn-action" id="hintBtn">💡 Dica <span class="badge-count" id="hintBadge">3</span></button>
             </div>
         </div>
 
-        <div class="board" id="board"></div>
+        <div class="scoreboard">
+            <div class="player-card red active" id="card-red">
+                <div class="player-meta">
+                    <span class="player-name">Você (Rubi)</span>
+                    <span class="status-tag">Sua Vez</span>
+                </div>
+                <div class="score-val">
+                    <span id="count-red" style="color: var(--ruby)">12</span>
+                    <span class="clock-display" id="clock-red"></span>
+                </div>
+            </div>
+
+            <div class="player-card black" id="card-black">
+                <div class="player-meta">
+                    <span class="player-name" id="name-black">Jogador 2</span>
+                    <span class="status-tag" id="tag-black">Aguardando</span>
+                </div>
+                <div class="score-val">
+                    <span id="count-black" style="color: var(--cyan)">12</span>
+                    <span class="clock-display" id="clock-black"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <span>Partidas: <b id="statGames">0</b></span>
+            <span id="statWinsWrap" style="display:none;">Vitórias: <b id="statWins">0</b></span>
+            <span id="statLossesWrap" style="display:none;">Derrotas: <b id="statLosses">0</b></span>
+            <span>Rede Global: <b id="globalGames">...</b></span>
+        </div>
+
+        <div class="board-container">
+            <div class="board" id="board"></div>
+        </div>
     </div>
 
-    <div class="victory-screen" id="victoryScreen">
-        <div class="victory-card" id="victoryCard">
-            <div class="victory-banner">🏆</div>
-            <h2 class="victory-title" id="winnerTitle">Vitória!</h2>
-            <p class="victory-text" id="winnerSubText">Partida encerrada com sucesso.</p>
+    <div class="modal-overlay" id="victoryScreen">
+        <div class="modal-card" id="modalCard">
+            <div class="modal-icon">🏆</div>
+            <h2 class="modal-title" id="winnerTitle">Vitória!</h2>
+            <p class="modal-desc" id="winnerSubText">Partida finalizada com sucesso.</p>
             <button class="btn-primary" id="restartBtn">Jogar Novamente</button>
         </div>
     </div>
 
+    <!-- Módulo Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, increment, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA6hQbsB-S8fJXwGXI2AZHGx2Ze1LM2bzY",
@@ -191,594 +471,748 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const globalStatsDoc = doc(db, "cyber_damas", "global_network");
 
-        const boardElement = document.getElementById('board');
-        const countRedElement = document.getElementById('count-red');
-        const countBlackElement = document.getElementById('count-black');
-        const cardRed = document.getElementById('card-red');
-        const cardBlack = document.getElementById('card-black');
-        const nameBlack = document.getElementById('name-black');
-        const vsPlayerBtn = document.getElementById('vsPlayerBtn');
-        const vsAiBtn = document.getElementById('vsAiBtn');
+        const netStatusEl = document.getElementById('netStatus');
+        const globalGamesEl = document.getElementById('globalGames');
 
-        const victoryScreen = document.getElementById('victoryScreen');
-        const winnerTitle = document.getElementById('winnerTitle');
-        const winnerSubText = document.getElementById('winnerSubText');
-        const restartBtn = document.getElementById('restartBtn');
-        const canvas = document.getElementById('celebrationCanvas');
-        const ctx = canvas.getContext('2d');
-
-        let boardState = [];
-        let turn = 'red'; 
-        let selectedPiece = null;
-        let validMoves = [];
-        let isVsAI = false; 
-        let isMultiJumpMode = false;
-        let gameActive = true; 
-        let currentMatchHistory = []; 
-        let celebrationAnimId = null;
-
-        vsPlayerBtn.addEventListener('click', () => { setGameMode(false); });
-        vsAiBtn.addEventListener('click', () => { setGameMode(true); });
-        restartBtn.addEventListener('click', () => { 
-            stopCelebration();
-            victoryScreen.classList.remove('show');
-            initGame(); 
+        onSnapshot(globalStatsDoc, (docSnap) => {
+            if (docSnap.exists()) {
+                globalGamesEl.textContent = docSnap.data().totalMatches || 0;
+                netStatusEl.textContent = 'REDE CONECTADA';
+            } else {
+                setDoc(globalStatsDoc, { totalMatches: 1 }, { merge: true });
+            }
+        }, () => {
+            netStatusEl.textContent = 'OFFLINE';
+            globalGamesEl.textContent = 'N/A';
         });
 
-        function setGameMode(aiMode) {
-            isVsAI = aiMode;
-            vsPlayerBtn.classList.toggle('active', !aiMode);
-            vsAiBtn.classList.toggle('active', aiMode);
-            nameBlack.textContent = aiMode ? "IA (Azul)" : "Jogador (Azul)";
-            initGame();
-        }
-
-        function initGame() {
-            stopCelebration();
-            boardState = Array(8).fill(null).map(() => Array(8).fill(null));
-            turn = 'red';
-            selectedPiece = null;
-            validMoves = [];
-            isMultiJumpMode = false;
-            gameActive = true;
-            currentMatchHistory = []; 
-
-            for (let row = 0; row < 8; row++) {
-                for (let col = 0; col < 8; col++) {
-                    if ((row + col) % 2 === 1) {
-                        if (row < 3) boardState[row][col] = { type: 'black', king: false };
-                        else if (row > 4) boardState[row][col] = { type: 'red', king: false };
-                    }
-                }
-            }
-            renderBoard(true);
-            updateScoreboard(false);
-        }
-
-        function renderBoard(isInitial = false) {
-            boardElement.innerHTML = '';
-            for (let row = 0; row < 8; row++) {
-                for (let col = 0; col < 8; col++) {
-                    const cell = document.createElement('div');
-                    cell.classList.add('cell', (row + col) % 2 === 1 ? 'dark' : 'light');
-                    cell.dataset.row = row;
-                    cell.dataset.col = col;
-
-                    const pieceData = boardState[row][col];
-                    if (pieceData) {
-                        const piece = document.createElement('div');
-                        piece.classList.add('piece', pieceData.type);
-                        if (pieceData.king) piece.classList.add('king');
-                        
-                        if(!isInitial) piece.style.animation = 'none';
-
-                        if (selectedPiece && selectedPiece.row === row && selectedPiece.col === col) {
-                            piece.classList.add('selected');
-                            piece.style.animation = '';
-                        }
-                        
-                        piece.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            if (!gameActive || (isVsAI && turn === 'black')) return; 
-                            handlePieceClick(row, col);
-                        });
-                        cell.appendChild(piece);
-                    }
-
-                    const isMoveValid = validMoves.some(m => m.toRow === row && m.toCol === col);
-                    if (isMoveValid && gameActive) {
-                        cell.classList.add('valid');
-                        cell.addEventListener('click', () => {
-                            if (isVsAI && turn === 'black') return;
-                            handleMove(row, col);
-                        });
-                    }
-                    boardElement.appendChild(cell);
-                }
-            }
-        }
-
-        function playerHasJumps(playerColor) {
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    if (boardState[r][c]?.type === playerColor) {
-                        const jumps = getMovesForPiece(r, c, true);
-                        if (jumps.length > 0) return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        function handlePieceClick(row, col) {
-            if (isMultiJumpMode && (selectedPiece.row !== row || selectedPiece.col !== col)) return;
-            const piece = boardState[row][col];
-            if (!piece || piece.type !== turn) return;
-
-            selectedPiece = { row, col };
-            const mustJump = isMultiJumpMode || playerHasJumps(turn);
-            validMoves = getMovesForPiece(row, col, mustJump);
-            renderBoard();
-        }
-
-        function getMovesForPiece(row, col, restrictToJumps = false) {
-            const piece = boardState[row][col];
-            if (!piece) return [];
-            const moves = [];
-
-            if (piece.king) {
-                const directions = [{ r: -1, c: -1 }, { r: -1, c: 1 }, { r: 1, c: -1 }, { r: 1, c: 1 }];
-                directions.forEach(dir => {
-                    let nextR = row + dir.r;
-                    let nextC = col + dir.c;
-                    let encounteredEnemy = null;
-
-                    while (nextR >= 0 && nextR < 8 && nextC >= 0 && nextC < 8) {
-                        const currentTile = boardState[nextR][nextC];
-                        if (!encounteredEnemy) {
-                            if (!currentTile) {
-                                if (!restrictToJumps && !isMultiJumpMode) {
-                                    moves.push({ toRow: nextR, toCol: nextC, jump: null });
-                                }
-                            } else if (currentTile.type !== piece.type) {
-                                encounteredEnemy = { r: nextR, c: nextC };
-                            } else break;
-                        } else {
-                            if (!currentTile) {
-                                moves.push({ toRow: nextR, toCol: nextC, jump: { r: encounteredEnemy.r, c: encounteredEnemy.c } });
-                            } else break;
-                        }
-                        nextR += dir.r;
-                        nextC += dir.c;
-                    }
+        window.syncGameToFirebase = async function(winnerIsUser) {
+            try {
+                await updateDoc(globalStatsDoc, {
+                    totalMatches: increment(1),
+                    userWins: winnerIsUser ? increment(1) : increment(0)
                 });
-            } else {
-                const walkDirections = piece.type === 'red' ? [{ r: -1, c: -1 }, { r: -1, c: 1 }] : [{ r: 1, c: -1 }, { r: 1, c: 1 }];
-                const jumpDirections = [{ r: -1, c: -1 }, { r: -1, c: 1 }, { r: 1, c: -1 }, { r: 1, c: 1 }];
+            } catch (e) {
+                try {
+                    await setDoc(globalStatsDoc, { totalMatches: 1 }, { merge: true });
+                } catch(err) {}
+            }
+        };
+    </script>
 
-                if (!restrictToJumps && !isMultiJumpMode) {
-                    walkDirections.forEach(dir => {
-                        let nextR = row + dir.r;
-                        let nextC = col + dir.c;
-                        if (nextR >= 0 && nextR < 8 && nextC >= 0 && nextC < 8) {
-                            if (!boardState[nextR][nextC]) {
-                                moves.push({ toRow: nextR, toCol: nextC, jump: null });
-                            }
-                        }
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Áudio Sintetizado Nativo
+            class SoundSystem {
+                constructor() { this.enabled = true; this.ctx = null; }
+                init() {
+                    if (!this.ctx) {
+                        const AudioContext = window.AudioContext || window.webkitAudioContext;
+                        if (AudioContext) this.ctx = new AudioContext();
+                    }
+                }
+                playTone(freq, duration, type = 'sine', gainVal = 0.06) {
+                    if (!this.enabled) return;
+                    this.init();
+                    if (!this.ctx) return;
+                    try {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = type;
+                        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start();
+                        osc.stop(this.ctx.currentTime + duration);
+                    } catch (e) {}
+                }
+                click() { this.playTone(600, 0.03, 'sine', 0.04); }
+                move() { this.playTone(340, 0.05, 'triangle', 0.05); }
+                capture() {
+                    this.playTone(200, 0.08, 'sawtooth', 0.08);
+                    setTimeout(() => this.playTone(400, 0.08, 'sine', 0.08), 40);
+                }
+                king() {
+                    [523, 659, 783].forEach((f, idx) => {
+                        setTimeout(() => this.playTone(f, 0.1, 'triangle', 0.06), idx * 50);
                     });
                 }
+                win() {
+                    [440, 554, 659, 880, 1046].forEach((f, idx) => {
+                        setTimeout(() => this.playTone(f, 0.22, 'sine', 0.1), idx * 80);
+                    });
+                }
+                lose() {
+                    [350, 300, 250].forEach((f, idx) => {
+                        setTimeout(() => this.playTone(f, 0.15, 'sawtooth', 0.06), idx * 80);
+                    });
+                }
+            }
+            const sound = new SoundSystem();
 
-                jumpDirections.forEach(dir => {
-                    let nextR = row + dir.r;
-                    let nextC = col + dir.c;
-                    if (nextR >= 0 && nextR < 8 && nextC >= 0 && nextC < 8) {
-                        if (boardState[nextR][nextC] && boardState[nextR][nextC].type !== piece.type) {
-                            let jumpR = nextR + dir.r;
-                            let jumpC = nextC + dir.c;
-                            if (jumpR >= 0 && jumpR < 8 && jumpC >= 0 && jumpC < 8) {
-                                if (!boardState[jumpR][jumpC]) {
-                                    moves.push({ toRow: jumpR, toCol: jumpC, jump: { r: nextR, c: nextC } });
+            // --- SISTEMA DE CELEBRAÇÃO E CONFETIS PERSONALIZADO ---
+            const canvas = document.getElementById('celebrationCanvas');
+            const ctx = canvas.getContext('2d');
+            let confettiParticles = [];
+            let confettiAnimId = null;
+
+            function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // Dispara rajada de confetes adaptada para a cor do vencedor!
+            function spawnConfetti(winnerColor = 'red') {
+                confettiParticles = [];
+                const colors = winnerColor === 'red'
+                    ? ['#f43f5e', '#ff6b81', '#f59e0b', '#ffffff'] // Rubi/Ouro
+                    : ['#06b6d4', '#22d3ee', '#38bdf8', '#ffffff']; // Ciano/Azul
+
+                for (let i = 0; i < 110; i++) {
+                    confettiParticles.push({
+                        x: canvas.width / 2,
+                        y: canvas.height / 2,
+                        vx: (Math.random() - 0.5) * 16,
+                        vy: (Math.random() - 0.8) * 16,
+                        size: Math.random() * 6 + 4,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        rotation: Math.random() * Math.PI * 2,
+                        vRot: (Math.random() - 0.5) * 0.2,
+                        life: 1,
+                        shape: Math.random() > 0.4 ? 'rect' : 'circle'
+                    });
+                }
+                if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+                animateConfetti();
+            }
+
+            function animateConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+                confettiParticles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.22; // gravidade
+                    p.rotation += p.vRot;
+                    p.life -= 0.012;
+
+                    if (p.life > 0) {
+                        alive = true;
+                        ctx.save();
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate(p.rotation);
+                        ctx.fillStyle = p.color;
+                        ctx.globalAlpha = Math.max(0, p.life);
+
+                        if (p.shape === 'rect') {
+                            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.4);
+                        } else {
+                            ctx.beginPath();
+                            ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                        ctx.restore();
+                    }
+                });
+                if (alive) confettiAnimId = requestAnimationFrame(animateConfetti);
+            }
+
+            // Game State
+            const RED = 'red';
+            const BLACK = 'black';
+            const BOARD_SIZE = 8;
+
+            let boardState = [];
+            let turn = RED;
+            let mode = 'pvp';
+            let aiDifficulty = 'medium';
+            let selectedPos = null;
+            let validMoves = [];
+            let mustCaptureFrom = null;
+            let comboCount = 0;
+
+            let hintsRemaining = 3;
+            let blitzMode = false;
+            let blitzTimeLeft = 15;
+            let blitzTimerInterval = null;
+
+            let totalGames = 0, wins = 0, losses = 0;
+
+            const boardEl = document.getElementById('board');
+            const vsPlayerBtn = document.getElementById('vsPlayerBtn');
+            const vsAiBtn = document.getElementById('vsAiBtn');
+            const difficultyRow = document.getElementById('difficultyRow');
+            const soundBtn = document.getElementById('soundBtn');
+            const blitzBtn = document.getElementById('blitzBtn');
+            const hintBtn = document.getElementById('hintBtn');
+            const hintBadge = document.getElementById('hintBadge');
+
+            const cardRed = document.getElementById('card-red');
+            const cardBlack = document.getElementById('card-black');
+            const countRed = document.getElementById('count-red');
+            const countBlack = document.getElementById('count-black');
+            const nameBlack = document.getElementById('name-black');
+            const tagBlack = document.getElementById('tag-black');
+            const clockRed = document.getElementById('clock-red');
+            const clockBlack = document.getElementById('clock-black');
+
+            const comboToast = document.getElementById('comboToast');
+            const victoryScreen = document.getElementById('victoryScreen');
+            const modalCard = document.getElementById('modalCard');
+            const winnerTitle = document.getElementById('winnerTitle');
+            const winnerSubText = document.getElementById('winnerSubText');
+            const restartBtn = document.getElementById('restartBtn');
+
+            function loadStats() {
+                totalGames = parseInt(localStorage.getItem('cyberDamas_games') || '0', 10);
+                wins = parseInt(localStorage.getItem('cyberDamas_wins') || '0', 10);
+                losses = parseInt(localStorage.getItem('cyberDamas_losses') || '0', 10);
+                updateStatsUI();
+            }
+
+            function saveStats() {
+                localStorage.setItem('cyberDamas_games', totalGames);
+                localStorage.setItem('cyberDamas_wins', wins);
+                localStorage.setItem('cyberDamas_losses', losses);
+                updateStatsUI();
+            }
+
+            function updateStatsUI() {
+                document.getElementById('statGames').textContent = totalGames;
+                document.getElementById('statWins').textContent = wins;
+                document.getElementById('statLosses').textContent = losses;
+
+                if (mode === 'ai') {
+                    document.getElementById('statWinsWrap').style.display = 'inline';
+                    document.getElementById('statLossesWrap').style.display = 'inline';
+                } else {
+                    document.getElementById('statWinsWrap').style.display = 'none';
+                    document.getElementById('statLossesWrap').style.display = 'none';
+                }
+            }
+
+            function initGame() {
+                boardState = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if ((r + c) % 2 === 1) {
+                            if (r < 3) boardState[r][c] = { color: BLACK, isKing: false };
+                            else if (r > 4) boardState[r][c] = { color: RED, isKing: false };
+                        }
+                    }
+                }
+                turn = RED;
+                selectedPos = null;
+                validMoves = [];
+                mustCaptureFrom = null;
+                comboCount = 0;
+                hintsRemaining = 3;
+                hintBadge.textContent = hintsRemaining;
+
+                victoryScreen.classList.remove('show');
+                modalCard.classList.remove('red-theme', 'black-theme');
+                renderBoard();
+                updateUI();
+                resetBlitzTimer();
+            }
+
+            function renderBoard() {
+                boardEl.innerHTML = '';
+                let redCount = 0, blackCount = 0;
+
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        const cell = document.createElement('div');
+                        const isDark = (r + c) % 2 === 1;
+                        cell.className = `cell ${isDark ? 'dark' : 'light'}`;
+                        cell.dataset.row = r;
+                        cell.dataset.col = c;
+
+                        const piece = boardState[r][c];
+                        if (piece) {
+                            if (piece.color === RED) redCount++;
+                            else blackCount++;
+
+                            const pieceEl = document.createElement('div');
+                            pieceEl.className = `piece ${piece.color}${piece.isKing ? ' king' : ''}`;
+                            pieceEl.dataset.color = piece.color;
+                            if (selectedPos && selectedPos.r === r && selectedPos.c === c) {
+                                pieceEl.classList.add('selected');
+                            }
+                            cell.appendChild(pieceEl);
+                        }
+
+                        if (validMoves.some(m => m.to.r === r && m.to.c === c)) {
+                            cell.classList.add('valid');
+                        }
+
+                        cell.addEventListener('click', () => handleCellClick(r, c));
+                        boardEl.appendChild(cell);
+                    }
+                }
+
+                countRed.textContent = redCount;
+                countBlack.textContent = blackCount;
+            }
+
+            function getValidMovesForPlayer(color, state = boardState) {
+                let moves = [], captures = [];
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        const piece = state[r][c];
+                        if (piece && piece.color === color) {
+                            getPieceMoves(r, c, state).forEach(m => {
+                                if (m.captured) captures.push(m);
+                                else moves.push(m);
+                            });
+                        }
+                    }
+                }
+                return captures.length > 0 ? captures : moves;
+            }
+
+            // --- REGRA BRASILEIRA: DAMA VOADORA ---
+            function getPieceMoves(r, c, state = boardState) {
+                const piece = state[r][c];
+                if (!piece) return [];
+                const moves = [];
+                const allDirections = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+
+                if (piece.isKing) {
+                    for (const [dr, dc] of allDirections) {
+                        let step = 1;
+                        while (true) {
+                            const nr = r + dr * step;
+                            const nc = c + dc * step;
+                            if (!isInBounds(nr, nc)) break;
+                            if (state[nr][nc] === null) {
+                                moves.push({ from: { r, c }, to: { r: nr, c: nc }, captured: null });
+                            } else {
+                                break;
+                            }
+                            step++;
+                        }
+                    }
+
+                    for (const [dr, dc] of allDirections) {
+                        let step = 1;
+                        let enemyPos = null;
+
+                        while (true) {
+                            const nr = r + dr * step;
+                            const nc = c + dc * step;
+                            if (!isInBounds(nr, nc)) break;
+
+                            const target = state[nr][nc];
+                            if (target !== null) {
+                                if (enemyPos !== null) break;
+                                if (target.color === piece.color) break;
+                                else enemyPos = { r: nr, c: nc };
+                            } else {
+                                if (enemyPos !== null) {
+                                    moves.push({
+                                        from: { r, c },
+                                        to: { r: nr, c: nc },
+                                        captured: { r: enemyPos.r, c: enemyPos.c }
+                                    });
                                 }
+                            }
+                            step++;
+                        }
+                    }
+                } else {
+                    const forwardDirections = piece.color === RED ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+
+                    for (const [dr, dc] of forwardDirections) {
+                        const nr = r + dr;
+                        const nc = c + dc;
+                        if (isInBounds(nr, nc) && state[nr][nc] === null) {
+                            moves.push({ from: { r, c }, to: { r: nr, c: nc }, captured: null });
+                        }
+                    }
+
+                    for (const [dr, dc] of allDirections) {
+                        const midR = r + dr, midC = c + dc;
+                        const endR = r + (dr * 2), endC = c + (dc * 2);
+
+                        if (isInBounds(endR, endC)) {
+                            const midPiece = state[midR][midC];
+                            const endPiece = state[endR][endC];
+                            if (midPiece && midPiece.color !== piece.color && endPiece === null) {
+                                moves.push({
+                                    from: { r, c },
+                                    to: { r: endR, c: endC },
+                                    captured: { r: midR, c: midC }
+                                });
                             }
                         }
                     }
-                });
+                }
+
+                return moves;
             }
-            return moves;
-        }
 
-        function handleMove(toRow, toCol) {
-            const move = validMoves.find(m => m.toRow === toRow && m.toCol === toCol);
-            if (!move || !selectedPiece) return;
+            function isInBounds(r, c) { return r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE; }
 
-            const piece = boardState[selectedPiece.row][selectedPiece.col];
+            function handleCellClick(r, c) {
+                if (mode === 'ai' && turn === BLACK) return;
 
-            if (move.jump) {
-                const targetCell = boardElement.querySelector(`[data-row="${move.jump.r}"][data-col="${move.jump.c}"]`);
-                const targetPiece = targetCell ? targetCell.querySelector('.piece') : null;
-                
-                if (targetPiece) {
-                    targetPiece.classList.add('fade-out');
-                    setTimeout(() => { executeMove(toRow, toCol, move, piece); }, 250);
+                const piece = boardState[r][c];
+
+                if (mustCaptureFrom) {
+                    if (mustCaptureFrom.r !== r || mustCaptureFrom.c !== c) {
+                        const move = validMoves.find(m => m.to.r === r && m.to.c === c);
+                        if (move) executeMove(move);
+                        return;
+                    }
+                }
+
+                if (piece && piece.color === turn) {
+                    sound.click();
+                    selectedPos = { r, c };
+                    const allPlayerMoves = getValidMovesForPlayer(turn);
+                    const hasCaptures = allPlayerMoves.some(m => m.captured !== null);
+
+                    if (hasCaptures) {
+                        validMoves = allPlayerMoves.filter(m => m.from.r === r && m.from.c === c && m.captured !== null);
+                    } else {
+                        validMoves = allPlayerMoves.filter(m => m.from.r === r && m.from.c === c);
+                    }
+                    renderBoard();
                     return;
                 }
+
+                if (selectedPos) {
+                    const move = validMoves.find(m => m.to.r === r && m.to.c === c);
+                    if (move) executeMove(move);
+                    else { selectedPos = null; validMoves = []; renderBoard(); }
+                }
             }
-            executeMove(toRow, toCol, move, piece);
-        }
 
-        function executeMove(toRow, toCol, move, piece) {
-            boardState[toRow][toCol] = piece;
-            boardState[selectedPiece.row][selectedPiece.col] = null;
+            function executeMove(move) {
+                const { from, to, captured } = move;
+                const piece = boardState[from.r][from.c];
 
-            if (move.jump) {
-                boardState[move.jump.r][move.jump.c] = null;
-                selectedPiece = { row: toRow, col: toCol };
-                
-                if ((piece.type === 'red' && toRow === 0) || (piece.type === 'black' && toRow === 7)) {
-                    piece.king = true;
+                boardState[to.r][to.c] = piece;
+                boardState[from.r][from.c] = null;
+
+                let wasCaptured = false;
+                if (captured) {
+                    boardState[captured.r][captured.c] = null;
+                    wasCaptured = true;
+                    comboCount++;
+                    sound.capture();
+                } else {
+                    sound.move();
                 }
 
-                validMoves = getMovesForPiece(toRow, toCol, true);
-
-                if (validMoves.length > 0) {
-                    isMultiJumpMode = true;
-                    renderBoard();
-                    updateScoreboard(true);
-                    if (isVsAI && turn === 'black') setTimeout(() => { makeAiSubsequentMove(); }, 500);
-                    return; 
-                }
-            } else if ((piece.type === 'red' && toRow === 0) || (piece.type === 'black' && toRow === 7)) {
-                piece.king = true;
-            }
-
-            isMultiJumpMode = false;
-            selectedPiece = null;
-            validMoves = [];
-            turn = turn === 'red' ? 'black' : 'red';
-            
-            renderBoard();
-            updateScoreboard(true);
-            
-            if (checkGameOver()) return;
-
-            if (gameActive && isVsAI && turn === 'black') {
-                setTimeout(() => { playAiTurn(); }, 350);
-            }
-        }
-
-        function getBoardStateHash() {
-            let hash = '';
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    if ((r + c) % 2 === 1) { 
-                        const p = boardState[r][c];
-                        if (!p) hash += 'x'; 
-                        else if (p.type === 'red') hash += p.king ? 'R' : 'r';
-                        else hash += p.king ? 'B' : 'b';
+                if (!piece.isKing) {
+                    if ((piece.color === RED && to.r === 0) || (piece.color === BLACK && to.r === BOARD_SIZE - 1)) {
+                        piece.isKing = true;
+                        sound.king();
                     }
                 }
-            }
-            return hash;
-        }
 
-        function getAllPossibleMoves(playerColor) {
-            const mustJump = playerHasJumps(playerColor);
-            let allMoves = [];
+                if (wasCaptured) {
+                    const furtherMoves = getPieceMoves(to.r, to.c).filter(m => m.captured !== null);
+                    if (furtherMoves.length > 0) {
+                        mustCaptureFrom = { r: to.r, c: to.c };
+                        selectedPos = { r: to.r, c: to.c };
+                        validMoves = furtherMoves;
 
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    if (boardState[r][c]?.type === playerColor) {
-                        const moves = getMovesForPiece(r, c, mustJump);
-                        moves.forEach(m => {
-                            allMoves.push({ fromRow: r, fromCol: c, toRow: m.toRow, toCol: m.toCol, jump: m.jump });
-                        });
+                        if (comboCount > 1) showComboToast(`COMBO x${comboCount}!`);
+                        renderBoard();
+                        resetBlitzTimer();
+
+                        if (mode === 'ai' && turn === BLACK) {
+                            setTimeout(() => triggerAiTurn(), 450);
+                        }
+                        return;
                     }
                 }
-            }
-            return allMoves;
-        }
 
-        async function playAiTurn() {
-            if (turn !== 'black' || !gameActive) return;
+                mustCaptureFrom = null; selectedPos = null; validMoves = []; comboCount = 0;
 
-            nameBlack.textContent = "IA Pensando...";
+                if (checkGameOver()) return;
 
-            const allMoves = getAllPossibleMoves('black');
-            
-            if (allMoves.length === 0) {
-                endGame('red');
-                return;
-            }
+                turn = turn === RED ? BLACK : RED;
+                updateUI();
+                renderBoard();
+                resetBlitzTimer();
 
-            const currentState = getBoardStateHash();
-            let globalWeights = {};
-
-            try {
-                const stateRef = doc(db, "cerebro_ia", currentState);
-                const stateSnap = await getDoc(stateRef);
-                if (stateSnap.exists()) {
-                    globalWeights = stateSnap.data();
+                if (mode === 'ai' && turn === BLACK) {
+                    setTimeout(() => triggerAiTurn(), 350);
                 }
-            } catch (e) {
-                console.warn("Conexão offline com o cérebro global.", e);
             }
 
-            let selectedMove = null;
-            let bestScore = -Infinity;
-            const explorationRate = 0.15; 
+            function showComboToast(text) {
+                comboToast.textContent = text;
+                comboToast.classList.add('show');
+                setTimeout(() => comboToast.classList.remove('show'), 1200);
+            }
 
-            if (Math.random() < explorationRate) {
-                selectedMove = allMoves[Math.floor(Math.random() * allMoves.length)];
-            } else {
-                allMoves.forEach(m => {
-                    const moveKey = `M${m.fromRow}${m.fromCol}${m.toRow}${m.toCol}`;
-                    let score = globalWeights[moveKey] || 0; 
-                    score += (Math.random() * 0.1); 
+            function triggerAiTurn() {
+                tagBlack.textContent = 'Pensando...';
 
+                setTimeout(() => {
+                    const bestMove = getBestMoveAi();
+                    if (bestMove) {
+                        executeMove(bestMove);
+                    } else {
+                        checkGameOver();
+                    }
+                }, 300);
+            }
+
+            function getBestMoveAi() {
+                let moves = mustCaptureFrom ? validMoves : getValidMovesForPlayer(BLACK);
+
+                if (!moves || moves.length === 0) return null;
+                if (aiDifficulty === 'easy') return moves[Math.floor(Math.random() * moves.length)];
+
+                const depth = aiDifficulty === 'medium' ? 2 : 4;
+                let bestScore = -Infinity;
+                let bestMove = moves[0];
+
+                for (const move of moves) {
+                    const simulatedState = cloneBoard(boardState);
+                    applyMoveToState(simulatedState, move);
+                    let score = minimax(simulatedState, depth - 1, -Infinity, Infinity, false);
                     if (score > bestScore) {
                         bestScore = score;
-                        selectedMove = m;
+                        bestMove = move;
                     }
+                }
+                return bestMove;
+            }
+
+            function minimax(state, depth, alpha, beta, isMaximizing) {
+                if (depth === 0) return evaluateBoard(state);
+                const color = isMaximizing ? BLACK : RED;
+                const moves = getValidMovesForPlayer(color, state);
+
+                if (moves.length === 0) return isMaximizing ? -1000 : 1000;
+
+                if (isMaximizing) {
+                    let maxEval = -Infinity;
+                    for (const move of moves) {
+                        const nextState = cloneBoard(state);
+                        applyMoveToState(nextState, move);
+                        const evalVal = minimax(nextState, depth - 1, alpha, beta, false);
+                        maxEval = Math.max(maxEval, evalVal);
+                        alpha = Math.max(alpha, evalVal);
+                        if (beta <= alpha) break;
+                    }
+                    return maxEval;
+                } else {
+                    let minEval = Infinity;
+                    for (const move of moves) {
+                        const nextState = cloneBoard(state);
+                        applyMoveToState(nextState, move);
+                        const evalVal = minimax(nextState, depth - 1, alpha, beta, true);
+                        minEval = Math.min(minEval, evalVal);
+                        beta = Math.min(beta, evalVal);
+                        if (beta <= alpha) break;
+                    }
+                    return minEval;
+                }
+            }
+
+            function evaluateBoard(state) {
+                let score = 0;
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        const piece = state[r][c];
+                        if (piece) {
+                            let val = piece.isKing ? 4 : 1;
+                            if (r >= 2 && r <= 5 && c >= 2 && c <= 5) val += 0.2;
+                            score += piece.color === BLACK ? val : -val;
+                        }
+                    }
+                }
+                return score;
+            }
+
+            function cloneBoard(state) { return state.map(row => row.map(cell => cell ? { ...cell } : null)); }
+
+            function applyMoveToState(state, move) {
+                const { from, to, captured } = move;
+                const piece = state[from.r][from.c];
+                state[to.r][to.c] = piece;
+                state[from.r][from.c] = null;
+                if (captured) state[captured.r][captured.c] = null;
+                if (!piece.isKing) {
+                    if ((piece.color === RED && to.r === 0) || (piece.color === BLACK && to.r === BOARD_SIZE - 1)) {
+                        piece.isKing = true;
+                    }
+                }
+            }
+
+            function checkGameOver() {
+                const redMoves = getValidMovesForPlayer(RED);
+                const blackMoves = getValidMovesForPlayer(BLACK);
+                let redPieceCount = 0, blackPieceCount = 0;
+
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if (boardState[r][c]?.color === RED) redPieceCount++;
+                        if (boardState[r][c]?.color === BLACK) blackPieceCount++;
+                    }
+                }
+
+                if (redPieceCount === 0 || redMoves.length === 0) { triggerGameOver(BLACK); return true; }
+                if (blackPieceCount === 0 || blackMoves.length === 0) { triggerGameOver(RED); return true; }
+                return false;
+            }
+
+            // --- DISPARO DE ANIMAÇÃO DE VITÓRIA PARA QUALQUER VENCEDOR ---
+            function triggerGameOver(winner) {
+                stopBlitzTimer();
+                totalGames++;
+                const winnerIsUser = (winner === RED);
+
+                if (window.syncGameToFirebase) window.syncGameToFirebase(winnerIsUser);
+
+                // 1. Toca o som de celebração festivo
+                sound.win();
+
+                // 2. Dispara a animação de partículas/confete temático do vencedor
+                spawnConfetti(winner);
+
+                // 3. Ativa a dança da vitória nas peças sobreviventes do campeão no tabuleiro
+                document.querySelectorAll(`.piece.${winner}`).forEach(p => {
+                    p.classList.add('victory-dance');
                 });
-            }
 
-            if (selectedMove) {
-                const chosenMoveKey = `M${selectedMove.fromRow}${selectedMove.fromCol}${selectedMove.toRow}${selectedMove.toCol}`;
-                currentMatchHistory.push({ state: currentState, move: chosenMoveKey });
+                // 4. Configura o modal visual com tema da cor do vencedor
+                modalCard.classList.remove('red-theme', 'black-theme');
 
-                selectedPiece = { row: selectedMove.fromRow, col: selectedMove.fromCol };
-                validMoves = [{ toRow: selectedMove.toRow, toCol: selectedMove.toCol, jump: selectedMove.jump }];
-                
-                nameBlack.textContent = "IA (Azul)"; 
-                renderBoard(); 
-                
-                setTimeout(() => { handleMove(selectedMove.toRow, selectedMove.toCol); }, 300);
-            }
-        }
-
-        function makeAiSubsequentMove() {
-            if(validMoves.length > 0) {
-                let move = validMoves[0];
-                const currentState = getBoardStateHash();
-                const chosenMoveKey = `M${selectedPiece.row}${selectedPiece.col}${move.toRow}${move.toCol}`;
-                currentMatchHistory.push({ state: currentState, move: chosenMoveKey });
-
-                validMoves = [move];
-                handleMove(move.toRow, move.toCol);
-            }
-        }
-
-        function checkGameOver() {
-            let redCount = 0, blackCount = 0;
-
-            for (let row = 0; row < 8; row++) {
-                for (let col = 0; col < 8; col++) {
-                    if (boardState[row][col]?.type === 'red') redCount++;
-                    if (boardState[row][col]?.type === 'black') blackCount++;
-                }
-            }
-            
-            if (redCount === 0) {
-                endGame('black');
-                return true;
-            } else if (blackCount === 0) {
-                endGame('red');
-                return true;
-            }
-
-            const availableMoves = getAllPossibleMoves(turn);
-            if (availableMoves.length === 0) {
-                const winner = turn === 'red' ? 'black' : 'red';
-                endGame(winner);
-                return true;
-            }
-
-            return false;
-        }
-
-        async function trainGlobalBrain(winner) {
-            const reward = (winner === 'black') ? 10 : -10;
-            
-            try {
-                const aggregated = {};
-                for (const step of currentMatchHistory) {
-                    if (!aggregated[step.state]) aggregated[step.state] = {};
-                    if (!aggregated[step.state][step.move]) aggregated[step.state][step.move] = 0;
-                    aggregated[step.state][step.move] += reward;
+                if (winner === RED) {
+                    modalCard.classList.add('red-theme');
+                    winnerTitle.textContent = "Vitória do Rubi!";
+                    winnerTitle.style.color = "var(--ruby)";
+                    winnerSubText.textContent = mode === 'ai' ? "Você venceu a Inteligência Artificial!" : "O Jogador 1 (Rubi) domina o tabuleiro.";
+                    if (mode === 'ai') wins++;
+                } else {
+                    modalCard.classList.add('black-theme');
+                    winnerTitle.textContent = mode === 'ai' ? "Vitória da IA!" : "Vitória do Ciano!";
+                    winnerTitle.style.color = "var(--cyan)";
+                    winnerSubText.textContent = mode === 'ai' ? "A Inteligência Artificial venceu a partida." : "O Jogador 2 (Ciano) domina o tabuleiro.";
+                    if (mode === 'ai') losses++;
                 }
 
-                const batch = writeBatch(db);
-                for (const [state, moves] of Object.entries(aggregated)) {
-                    const stateRef = doc(db, "cerebro_ia", state);
-                    const updateData = {};
-                    for (const [moveKey, val] of Object.entries(moves)) {
-                        updateData[moveKey] = increment(val);
+                saveStats();
+
+                // 5. Exibe o modal com overlay animado
+                setTimeout(() => {
+                    victoryScreen.classList.add('show');
+                }, 400);
+            }
+
+            function resetBlitzTimer() {
+                stopBlitzTimer();
+                if (!blitzMode) { clockRed.textContent = ''; clockBlack.textContent = ''; return; }
+                blitzTimeLeft = 15;
+                updateClockUI();
+
+                blitzTimerInterval = setInterval(() => {
+                    blitzTimeLeft--;
+                    updateClockUI();
+                    if (blitzTimeLeft <= 0) {
+                        stopBlitzTimer();
+                        turn = turn === RED ? BLACK : RED;
+                        updateUI();
+                        resetBlitzTimer();
+                        if (mode === 'ai' && turn === BLACK) triggerAiTurn();
                     }
-                    batch.set(stateRef, updateData, { merge: true });
-                }
-                
-                await batch.commit();
-            } catch (e) {
-                console.error("Falha ao atualizar o Cérebro Global:", e);
+                }, 1000);
             }
-        }
 
-        function endGame(winner) {
-            if (!gameActive) return; 
-            gameActive = false;
-            validMoves = [];
-            selectedPiece = null;
-            renderBoard();
+            function stopBlitzTimer() { if (blitzTimerInterval) clearInterval(blitzTimerInterval); }
 
-            // Adiciona efeito de dança na peças restantes do vencedor no tabuleiro
-            document.querySelectorAll(`.piece.${winner}`).forEach(p => {
-                p.classList.add('victory-dance');
+            function updateClockUI() {
+                const targetClock = turn === RED ? clockRed : clockBlack;
+                const otherClock = turn === RED ? clockBlack : clockRed;
+                otherClock.textContent = '';
+                targetClock.textContent = `00:${blitzTimeLeft < 10 ? '0' : ''}${blitzTimeLeft}`;
+            }
+
+            hintBtn.addEventListener('click', () => {
+                if (hintsRemaining <= 0 || (mode === 'ai' && turn === BLACK)) return;
+                const moves = getValidMovesForPlayer(turn);
+                if (moves.length === 0) return;
+
+                let bestMove = moves.find(m => m.captured !== null) || moves[0];
+                hintsRemaining--;
+                hintBadge.textContent = hintsRemaining;
+
+                const targetCell = boardEl.querySelector(`[data-row="${bestMove.to.r}"][data-col="${bestMove.to.c}"]`);
+                if (targetCell) {
+                    targetCell.classList.add('hint-glow');
+                    setTimeout(() => targetCell.classList.remove('hint-glow'), 1400);
+                }
+                sound.click();
             });
 
-            try {
-                addDoc(collection(db, "historico_partidas"), {
-                    ganhador: winner, 
-                    modo: isVsAI ? "Contra IA" : "PvP",
-                    timestamp: new Date().toISOString()
-                });
-            } catch(e) {
-                console.warn("Erro ao salvar histórico", e);
-            }
-
-            if (isVsAI) {
-                trainGlobalBrain(winner);
-            }
-            
-            if (winner === 'red') {
-                winnerTitle.textContent = "Vitória do Vermelho!";
-                winnerSubText.textContent = isVsAI ? "Você superou a mente coletiva da IA!" : "O jogador vermelho dominou o tabuleiro.";
-            } else {
-                winnerTitle.textContent = "Vitória do Azul!";
-                winnerSubText.textContent = isVsAI ? "A Inteligência Artificial venceu a partida." : "O jogador azul dominou o tabuleiro.";
-            }
-
-            startCelebration(winner);
-            setTimeout(() => { victoryScreen.classList.add('show'); }, 500);
-        }
-
-        // ==========================================
-        //  SISTEMA DE ANIMAÇÃO COM AS PEDRAS DE DAMAS
-        // ==========================================
-        let particles = [];
-
-        function startCelebration(winnerColor) {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            particles = [];
-
-            const primaryGradient = winnerColor === 'red' 
-                ? ['#f85149', '#da3633'] 
-                : ['#2f81f7', '#1f6feb'];
-
-            const totalPieces = 35; // Quantidade de pedras voadoras
-
-            for (let i = 0; i < totalPieces; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * -canvas.height - 50,
-                    radius: Math.random() * 12 + 18,
-                    vy: Math.random() * 3 + 2,
-                    vx: (Math.random() - 0.5) * 2,
-                    rotation: Math.random() * Math.PI * 2,
-                    vRot: (Math.random() - 0.5) * 0.08,
-                    isKing: Math.random() > 0.4,
-                    color1: primaryGradient[0],
-                    color2: primaryGradient[1],
-                    alpha: Math.random() * 0.4 + 0.6
-                });
-            }
-
-            animateCelebration();
-        }
-
-        function animateCelebration() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            particles.forEach((p) => {
-                p.y += p.vy;
-                p.x += Math.sin(p.y * 0.01) + p.vx;
-                p.rotation += p.vRot;
-
-                if (p.y - p.radius > canvas.height) {
-                    p.y = -p.radius * 2;
-                    p.x = Math.random() * canvas.width;
+            function updateUI() {
+                if (turn === RED) {
+                    cardRed.classList.add('active'); cardBlack.classList.remove('active');
+                    tagBlack.textContent = mode === 'ai' ? 'IA Aguardando' : 'Aguardando';
+                } else {
+                    cardBlack.classList.add('active'); cardRed.classList.remove('active');
+                    tagBlack.textContent = mode === 'ai' ? 'IA Pensando...' : 'Sua Vez';
                 }
+            }
 
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.rotate(p.rotation);
-                ctx.globalAlpha = p.alpha;
-
-                // Sombra da pedra
-                ctx.beginPath();
-                ctx.arc(3, 4, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-                ctx.fill();
-
-                // Corpo da pedra (Gradiente radial 3D)
-                const grad = ctx.createRadialGradient(-p.radius*0.3, -p.radius*0.3, p.radius*0.1, 0, 0, p.radius);
-                grad.addColorStop(0, '#ffffff');
-                grad.addColorStop(0.3, p.color1);
-                grad.addColorStop(1, p.color2);
-
-                ctx.beginPath();
-                ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = grad;
-                ctx.fill();
-
-                // Borda interna brilhante
-                ctx.beginPath();
-                ctx.arc(0, 0, p.radius * 0.75, 0, Math.PI * 2);
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // Coroa para Damas
-                if (p.isKing) {
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = `${p.radius * 1.1}px sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('♔', 0, 1);
-                }
-
-                ctx.restore();
+            vsPlayerBtn.addEventListener('click', () => {
+                mode = 'pvp';
+                vsPlayerBtn.classList.add('active');
+                vsAiBtn.classList.remove('active');
+                difficultyRow.style.display = 'none';
+                nameBlack.textContent = 'Jogador 2';
+                updateStatsUI();
+                initGame();
             });
 
-            celebrationAnimId = requestAnimationFrame(animateCelebration);
-        }
+            vsAiBtn.addEventListener('click', () => {
+                mode = 'ai';
+                vsAiBtn.classList.add('active');
+                vsPlayerBtn.classList.remove('active');
+                difficultyRow.style.display = 'flex';
+                nameBlack.textContent = 'Cyber IA';
+                updateStatsUI();
+                initGame();
+            });
 
-        function stopCelebration() {
-            if (celebrationAnimId) {
-                cancelAnimationFrame(celebrationAnimId);
-                celebrationAnimId = null;
-            }
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
+            document.querySelectorAll('[data-diff]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('[data-diff]').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    aiDifficulty = e.target.dataset.diff;
+                    initGame();
+                });
+            });
 
-        window.addEventListener('resize', () => {
-            if (celebrationAnimId) {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
+            soundBtn.addEventListener('click', () => {
+                sound.enabled = !sound.enabled;
+                soundBtn.classList.toggle('active', sound.enabled);
+                soundBtn.textContent = sound.enabled ? '🔊 Som' : '🔇 Mudo';
+            });
+
+            blitzBtn.addEventListener('click', () => {
+                blitzMode = !blitzMode;
+                blitzBtn.classList.toggle('active', blitzMode);
+                resetBlitzTimer();
+            });
+
+            restartBtn.addEventListener('click', initGame);
+
+            loadStats();
+            initGame();
         });
-
-        function updateScoreboard(bumpAnimation = false) {
-            let redCount = 0, blackCount = 0;
-            for (let row = 0; row < 8; row++) {
-                for (let col = 0; col < 8; col++) {
-                    if (boardState[row][col]?.type === 'red') redCount++;
-                    if (boardState[row][col]?.type === 'black') blackCount++;
-                }
-            }
-            if (bumpAnimation) {
-                if(countRedElement.textContent != redCount) triggerBump(countRedElement);
-                if(countBlackElement.textContent != blackCount) triggerBump(countBlackElement);
-            }
-            countRedElement.textContent = redCount;
-            countBlackElement.textContent = blackCount;
-
-            if (turn === 'red') {
-                cardRed.classList.add('active');
-                cardBlack.classList.remove('active');
-            } else {
-                cardBlack.classList.add('active');
-                cardRed.classList.remove('active');
-            }
-        }
-
-        function triggerBump(element) {
-            element.classList.add('bump');
-            setTimeout(() => element.classList.remove('bump'), 200);
-        }
-
-        initGame();
     </script>
 </body>
 </html>
